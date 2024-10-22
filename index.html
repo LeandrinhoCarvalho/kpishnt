@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cálculo de Meta de Vendas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #F0F4F8;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            color: #2C3E50;
+            text-align: center;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        .form-container {
+            background-color: #FFFFFF;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: 700;
+            color: #34495E;
+        }
+        input, select {
+            width: calc(100% - 24px);
+            padding: 12px;
+            margin-top: 8px;
+            margin-left: 12px;
+            margin-right: 12px;
+            border: 2px solid #BDC3C7;
+            border-radius: 5px;
+            transition: border-color 0.3s;
+            box-sizing: border-box;
+        }
+        input:focus, select:focus {
+            border-color: #3498DB;
+            outline: none;
+        }
+        button {
+            margin-top: 20px;
+            padding: 12px;
+            background-color: #3498DB;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: 700;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980B9;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: #FFFFFF;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            max-width: 600px;
+            width: 100%;
+        }
+        .result h2 {
+            color: #2C3E50;
+        }
+        .result p {
+            margin: 5px 0;
+        }
+        .holiday-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .holiday-list li {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Cálculo de Meta de Vendas,TC e TM de Balcão</h1>
+<div class="form-container">
+    <form id="salesForm">
+        <label for="previousSales">Venda do Ano Anterior:</label>
+        <input type="number" id="previousSales" required>
+
+        <label for="averageTicket">Ticket Médio do Ano Anterior:</label>
+        <input type="number" id="averageTicket" required>
+
+        <label for="clients">Quantidade de Clientes Atendidos no Ano Anterior:</label>
+        <input type="number" id="clients" required>
+
+        <label for="state">Selecione o Estado:</label>
+        <select id="state" required>
+            <option value="">-- Selecione --</option>
+            <option value="SP">São Paulo</option>
+            <option value="RJ">Rio de Janeiro</option>
+            <option value="MG">Minas Gerais</option>
+            <option value="ES">Espírito Santo</option>
+	    <option value="CE">Ceará</option>
+            <option value="RN">Rio Grande do Norte</option>
+            <option value="BA">Bahia</option>
+            <option value="MA">São Luiz do Maranhão</option>
+        </select>
+
+        <label for="year">Selecione o Ano atual:</label>
+        <select id="year" required>
+            <option value="">-- Selecione --</option>
+            <option value="2023">2023</option>
+            <option value="2024">2024</option>
+  	    <option value="2025">2025</option>
+        </select>
+
+        <label for="month">Selecione o Mês:</label>
+        <select id="month" required>
+            <option value="">-- Selecione --</option>
+            <option value="1">Janeiro</option>
+            <option value="2">Fevereiro</option>
+            <option value="3">Março</option>
+            <option value="4">Abril</option>
+            <option value="5">Maio</option>
+            <option value="6">Junho</option>
+            <option value="7">Julho</option>
+            <option value="8">Agosto</option>
+            <option value="9">Setembro</option>
+            <option value="10">Outubro</option>
+            <option value="11">Novembro</option>
+            <option value="12">Dezembro</option>
+        </select>
+
+        <label for="ipca">IPCA (%):</label>
+        <input type="number" id="ipca" step="0.01" required>
+
+        <label for="growth">Curva de Crescimento do Varejo (%):</label>
+        <input type="number" id="growth" step="0.01" required>
+
+        <button type="button" onclick="calculateSalesGoal()">Calcular Meta</button>
+    </form>
+</div>
+
+<div class="result" id="result" style="display: none;">
+    <h2>Resultados da Meta de Vendas</h2>
+    <p><strong>Meta de Vendas:</strong> <span id="salesGoal"></span></p>
+    <p><strong>Feriados do Mês:</strong></p>
+    <ul class="holiday-list" id="holidays"></ul>
+    <p><strong>Dias da Semana dos Feriados:</strong> <span id="holidayDays"></span></p>
+    <p><strong>Número de Dias Úteis:</strong> <span id="workingDays"></span></p>
+    <p><strong>Número de Dias de Fins de Semana:</strong> <span id="weekendDays"></span></p>
+    <p><strong>Percentual de Crescimento:</strong> <span id="growthPercentage"></span></p>
+    <p><strong>Clientes Necessários:</strong> <span id="requiredClients"></span></p>
+    <p><strong>Ticket Médio Necessário por Cliente:</strong> <span id="requiredTicketPerClient"></span></p>
+</div>
+
+<script>
+    function calculateSalesGoal() {
+        const previousSales = parseFloat(document.getElementById('previousSales').value);
+        const averageTicket = parseFloat(document.getElementById('averageTicket').value);
+        const clients = parseInt(document.getElementById('clients').value);
+        const state = document.getElementById('state').value;
+        const year = parseInt(document.getElementById('year').value);
+        const month = parseInt(document.getElementById('month').value);
+        const ipca = parseFloat(document.getElementById('ipca').value) / 100;
+        const growth = parseFloat(document.getElementById('growth').value) / 100;
+
+        const holidaysCurrent = getHolidays(state, year, month);
+        const workingDaysCurrent = getWorkingDays(year, month);
+        const weekendDaysCurrent = getWeekendDays(year, month);
+
+        const previousYear = year - 1;
+        const holidaysPrevious = getHolidays(state, previousYear, month);
+        const workingDaysPrevious = getWorkingDays(previousYear, month);
+        const weekendDaysPrevious = getWeekendDays(previousYear, month);
+
+        // Ajustando a venda com o IPCA
+        let adjustedSales = previousSales * (1 + ipca) * (1 + growth);
+        let salesAdjustment = (workingDaysCurrent - workingDaysPrevious) * 150 + (weekendDaysCurrent - weekendDaysPrevious) * 200;
+        let salesGoal = adjustedSales + salesAdjustment - (holidaysCurrent.length * 300);
+
+        // Cálculo do percentual de crescimento
+        let growthPercentage = ((salesGoal - previousSales) / previousSales) * 100;
+
+        // Cálculo de ticket médio e clientes necessários
+        const requiredClients = Math.ceil(salesGoal / averageTicket);
+        const requiredTicketPerClient = salesGoal / clients;
+
+        document.getElementById('salesGoal').innerText = formatCurrency(salesGoal);
+        document.getElementById('holidays').innerHTML = holidaysCurrent.map(holiday => `<li>${holiday.name} - ${formatDate(holiday.date)}</li>`).join('');
+        document.getElementById('holidayDays').innerText = getHolidayDays(holidaysCurrent);
+        document.getElementById('workingDays').innerText = workingDaysCurrent;
+        document.getElementById('weekendDays').innerText = weekendDaysCurrent;
+        document.getElementById('growthPercentage').innerText = `${growthPercentage.toFixed(2)}%`;
+        document.getElementById('requiredClients').innerText = requiredClients;
+        document.getElementById('requiredTicketPerClient').innerText = formatCurrency(requiredTicketPerClient);
+
+        document.getElementById('result').style.display = 'block';
+    }
+
+    function getHolidays(state, year, month) {
+        const nationalHolidays = [
+            { name: "Ano Novo", date: new Date(year, 0, 1) },
+            { name: "Carnaval", date: new Date(year, 1, 20) },
+            { name: "Carnaval", date: new Date(year, 1, 21) },
+            { name: "Tiradentes", date: new Date(year, 3, 21) },
+            { name: "Dia do Trabalho", date: new Date(year, 4, 1) },
+            { name: "Independência do Brasil", date: new Date(year, 8, 7) },
+            { name: "Nossa Senhora Aparecida", date: new Date(year, 9, 12) },
+            { name: "Finados", date: new Date(year, 10, 2) },
+            { name: "Proclamação da República", date: new Date(year, 10, 15) },
+            { name: "Natal", date: new Date(year, 11, 25) }
+        ];
+
+        const stateHolidays = {
+            "SP": [
+                { name: "Revolução Constitucionalista", date: new Date(year, 6, 9) }
+            ],
+            "RJ": [
+                { name: "São Sebastião", date: new Date(year, 0, 20) },
+                { name: "Dia da Consciência Negra", date: new Date(year, 10, 20) }
+            ],
+            "MG": [
+                { name: "Tiradentes", date: new Date(year, 3, 21) }
+            ],
+            "RS": [
+                { name: "Revolução Farroupilha", date: new Date(year, 8, 20) }
+            ]
+        };
+
+        const allHolidays = [...nationalHolidays, ...(stateHolidays[state] || [])];
+
+        return allHolidays.filter(holiday => {
+            const holidayDate = holiday.date;
+            return holidayDate.getMonth() + 1 === month;
+        });
+    }
+
+    function getWorkingDays(year, month) {
+        let totalDays = new Date(year, month, 0).getDate();
+        let workingDays = 0;
+        for (let day = 1; day <= totalDays; day++) {
+            const date = new Date(year, month - 1, day);
+            if (date.getDay() !== 0 && date.getDay() !== 6) {
+                workingDays++;
+            }
+        }
+        return workingDays;
+    }
+
+    function getWeekendDays(year, month) {
+        let totalDays = new Date(year, month, 0).getDate();
+        let weekendDays = 0;
+        for (let day = 1; day <= totalDays; day++) {
+            const date = new Date(year, month - 1, day);
+            if (date.getDay() === 0 || date.getDay() === 6) {
+                weekendDays++;
+            }
+        }
+        return weekendDays;
+    }
+
+    function getHolidayDays(holidays) {
+        return holidays.map(holiday => {
+            const dayOfWeek = holiday.date.toLocaleString('pt-BR', { weekday: 'long' });
+            return dayOfWeek;
+        }).join(', ');
+    }
+
+    function formatDate(date) {
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+    }
+
+    function formatCurrency(value) {
+        return `R$ ${value.toFixed(2).replace('.', ',').replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.')}`;
+    }
+</script>
+
+</body>
+</html>
